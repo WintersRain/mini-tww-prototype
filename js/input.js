@@ -206,9 +206,9 @@ export function setupInputListeners(canvas, getUnits, getSelectedUnits, setSelec
                 const spacing = 3.0; // Spacing between units
                 const rowSpacing = 15; // Distance between front (DPS) and back (Tank) rows
 
-                // Separate tanks and dps based on role
+                // Separate tanks and dps based on role property
                 const tanks = unitsBeingMoved.filter(u => u.role === 'tank');
-                const dps = unitsBeingMoved.filter(u => u.role === 'dps');
+                const dps = unitsBeingMoved.filter(u => u.role === 'dps'); // Assuming other roles are dps for now
 
                 // Calculate formation angle based on drag direction (start to end)
                 const formationAngleRad = Math.atan2(dy, dx);

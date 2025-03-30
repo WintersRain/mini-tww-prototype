@@ -115,7 +115,18 @@ function drawGame() {
         ctx.moveTo(indicator.startX, indicator.startY);
         ctx.lineTo(indicator.endX, indicator.endY);
         ctx.stroke();
-        // Optional: Draw arrow head? More complex.
+
+        // Draw arrowhead
+        const headlen = 10; // length of head in pixels
+        const dx = indicator.endX - indicator.startX;
+        const dy = indicator.endY - indicator.startY;
+        const angle = Math.atan2(dy, dx);
+        ctx.beginPath();
+        ctx.moveTo(indicator.endX, indicator.endY);
+        ctx.lineTo(indicator.endX - headlen * Math.cos(angle - Math.PI / 6), indicator.endY - headlen * Math.sin(angle - Math.PI / 6));
+        ctx.moveTo(indicator.endX, indicator.endY);
+        ctx.lineTo(indicator.endX - headlen * Math.cos(angle + Math.PI / 6), indicator.endY - headlen * Math.sin(angle + Math.PI / 6));
+        ctx.stroke();
     }
 }
 
