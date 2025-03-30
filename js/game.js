@@ -4,7 +4,7 @@ import { Unit } from './unit.js';
 import { logToFeed, damageFeedEl, killFeedEl } from './feed.js';
 import { handleCollisions } from './collision.js';
 import { handleCombat } from './combat.js';
-import { setupInputListeners, getSelectionBoxState } from './input.js';
+import { setupInputListeners, getSelectionBoxState, getMoveIndicator } from './input.js'; // Added getMoveIndicator
 
 // --- Global State ---
 const canvas = document.getElementById('gameCanvas');
