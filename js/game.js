@@ -44,7 +44,7 @@ function setup() {
         units.push(new Unit(
             playerStartX + col * spacing * 1.5, // Wider spacing for tanks
             playerStartY + row * spacing * 1.5,
-            largeRadius, 'blue', 800, 100, 30, 10, 15, true // isTrained = true
+            largeRadius, 'blue', 800, 100, 30, 10, 15, 'tank' // Pass role
         ));
     }
     // Place Small Units (e.g., 2 rows of 8, offset below tanks)
@@ -55,7 +55,7 @@ function setup() {
         units.push(new Unit(
             playerStartX + col * spacing,
             smallStartY + row * spacing,
-            smallRadius, 'blue', 320, 70, 50, 20, 5, true // isTrained = true
+            smallRadius, 'blue', 320, 70, 50, 20, 5, 'dps' // Pass role
         ));
     }
 
@@ -67,7 +67,7 @@ function setup() {
         units.push(new Unit(
             enemyStartX + col * spacing * 1.5,
             enemyStartY + row * spacing * 1.5,
-            largeRadius, 'red', 800, 100, 30, 10, 15, false // isTrained = false
+            largeRadius, 'red', 800, 100, 30, 10, 15, 'tank' // Pass role
         ));
     }
     // Place Small Units
@@ -78,7 +78,7 @@ function setup() {
         units.push(new Unit(
             enemyStartX + col * spacing,
             enemySmallStartY + row * spacing,
-            smallRadius, 'red', 320, 70, 50, 20, 5, false // isTrained = false
+            smallRadius, 'red', 320, 70, 50, 20, 5, 'dps' // Pass role
         ));
     }
 

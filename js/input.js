@@ -35,161 +35,51 @@ function isUnitInSelectionBox(unit, box) {
 // Needs canvas element and functions to get/set units/selectedUnits from main scope
 export function setupInputListeners(canvas, getUnits, getSelectedUnits, setSelectedUnits) {
 
+    // --- Combined Mouse Down Listener ---
     canvas.addEventListener('mousedown', (event) => {
-        if (event.button !== 0) return; // Only react to left mouse button down
-
         const rect = canvas.getBoundingClientRect();
-        selectionBoxStartX = event.clientX - rect.left;
-        selectionBoxStartY = event.clientY - rect.top;
-        selectionBoxCurrentX = selectionBoxStartX;
-        selectionBoxCurrentY = selectionBoxStartY;
-        isDraggingSelection = true;
-
-        // Clear selection on mousedown ONLY if Shift is not pressed
-        // This prevents clearing when starting a Shift+drag or Shift+click
-        if (!event.shiftKey) {
-            setSelectedUnits([]); // Use setter function
-        }
-    });
-
-    canvas.addEventListener('mousemove', (event) => {
-        if (!isDraggingSelection) return;
-
-        const rect = canvas.getBoundingClientRect();
-        selectionBoxCurrentX = event.clientX - rect.left;
-        selectionBoxCurrentY = event.clientY - rect.top;
-    });
-
-    canvas.addEventListener('mouseup', (event) => {
-        if (event.button !== 0 || !isDraggingSelection) return; // Only react to left mouse button up if dragging
-
-        const wasDragging = isDraggingSelection; // Store state before resetting
-        isDraggingSelection = false; // Reset drag state immediately
-
-        const rect = canvas.getBoundingClientRect();
-        const clickX = event.clientX - rect.left; // Use final mouse up position
+        const clickX = event.clientX - rect.left;
         const clickY = event.clientY - rect.top;
-        const shiftPressed = event.shiftKey; // Check shift state on mouse up
 
-        const dragThreshold = 5; // Minimum pixels moved to count as a drag
-        const dragDistance = Math.sqrt(
-            Math.pow(clickX - selectionBoxStartX, 2) +
-            Math.pow(clickY - selectionBoxStartY, 2)
-        );
+        if (event.button === 0) { // Left mouse button down (Selection Start)
+            selectionBoxStartX = clickX;
+            selectionBoxStartY = clickY;
+            selectionBoxCurrentX = selectionBoxStartX;
+            selectionBoxCurrentY = selectionBoxStartY;
+            isDraggingSelection = true;
 
-        const currentUnits = getUnits(); // Use getter
-        let currentSelection = [...getSelectedUnits()]; // Get a mutable copy
-
-        if (wasDragging && dragDistance > dragThreshold) {
-            // --- Drag Selection Logic ---
-            const selectionBox = {
-                x: Math.min(selectionBoxStartX, clickX),
-                y: Math.min(selectionBoxStartY, clickY),
-                width: Math.abs(clickX - selectionBoxStartX),
-                height: Math.abs(clickY - selectionBoxStartY),
-            };
-
-            const unitsInBox = [];
-            currentUnits.forEach(unit => {
-                // Allow selecting any unit for testing
-                if (!unit.isDead && isUnitInSelectionBox(unit, selectionBox)) {
-                    unitsInBox.push(unit);
-                }
-            });
-
-            if (shiftPressed) {
-                // Add units in box to current selection (avoid duplicates)
-                unitsInBox.forEach(unit => {
-                    if (!currentSelection.includes(unit)) {
-                        currentSelection.push(unit);
-                    }
-                });
-                console.log(`Added ${unitsInBox.length} units to selection. Total: ${currentSelection.length}`);
-                setSelectedUnits(currentSelection); // Update main state
-            } else {
-                // Replace selection with units in box (selection was already cleared on mousedown)
-                console.log(`Selected ${unitsInBox.length} units with box.`);
-                setSelectedUnits(unitsInBox); // Update main state
+            if (!event.shiftKey) {
+                setSelectedUnits([]);
             }
-        } else {
-            // --- Click Selection Logic (drag distance was small) ---
-
-            // Ignore single click if it happens right after a double-click
-            if (Date.now() - lastDoubleClickTime < DOUBLE_CLICK_COOLDOWN) {
-                console.log("Ignoring single click shortly after double-click.");
-                return;
-            }
-
-            let unitClicked = null;
-            // Find the top-most unit clicked
-            for (let i = currentUnits.length - 1; i >= 0; i--) {
-                const unit = currentUnits[i];
-                 if (unit.isDead) continue; // Don't select dead units
-                const dx = clickX - unit.x;
-                const dy = clickY - unit.y;
-                if (dx * dx + dy * dy < unit.radius * unit.radius) {
-                    unitClicked = unit;
-                    break;
-                }
-            }
-
-            if (shiftPressed) {
-                // Shift + Click: Toggle selection
-                if (unitClicked) {
-                    const index = currentSelection.indexOf(unitClicked);
-                    if (index > -1) {
-                        currentSelection.splice(index, 1); // Remove if already selected
-                        console.log("Removed unit from selection:", unitClicked.color);
-                    } else {
-                        currentSelection.push(unitClicked); // Add if not selected
-                        console.log("Added unit to selection:", unitClicked.color);
-                    }
-                    setSelectedUnits(currentSelection); // Update main state
-                }
-                // Don't clear selection if shift-clicking empty space
-            } else {
-                // Normal Click: Replace selection with clicked unit (if any)
-                if (unitClicked) {
-                    console.log("Selected unit:", unitClicked.color);
-                    setSelectedUnits([unitClicked]); // Update main state
-                } else {
-                    // If clicking empty space without shift, selection was already cleared on mousedown
-                    console.log("Selection cleared (clicked empty space)");
-                    setSelectedUnits([]); // Explicitly clear just in case
-                }
-            }
-        }
-    });
-
-    // --- Right-Click Handling (Replaces contextmenu) ---
-    canvas.addEventListener('mousedown', (event) => {
-        if (event.button === 2) { // Right mouse button down
-            const currentSelection = getSelectedUnits();
+        } else if (event.button === 2) { // Right mouse button down (Formation Start)
+             const currentSelection = getSelectedUnits();
             if (currentSelection.length > 0) {
-                const rect = canvas.getBoundingClientRect();
-                formationStartX = event.clientX - rect.left;
-                formationStartY = event.clientY - rect.top;
-                formationEndX = formationStartX; // Initialize end to start
+                formationStartX = clickX;
+                formationStartY = clickY;
+                formationEndX = formationStartX;
                 formationEndY = formationStartY;
                 isDraggingFormation = true;
-                unitsBeingMoved = [...currentSelection]; // Store the units being commanded
-                moveIndicator = null; // Clear previous indicator
+                unitsBeingMoved = [...currentSelection];
+                moveIndicator = null;
             }
         }
     });
 
+    // --- Combined Mouse Move Listener ---
      canvas.addEventListener('mousemove', (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const currentX = event.clientX - rect.left;
+        const currentY = event.clientY - rect.top;
+
         // Update selection box drag (left mouse)
         if (isDraggingSelection) {
-             const rect = canvas.getBoundingClientRect();
-             selectionBoxCurrentX = event.clientX - rect.left;
-             selectionBoxCurrentY = event.clientY - rect.top;
+             selectionBoxCurrentX = currentX;
+             selectionBoxCurrentY = currentY;
         }
         // Update formation drag line (right mouse)
         if (isDraggingFormation) {
-            const rect = canvas.getBoundingClientRect();
-            formationEndX = event.clientX - rect.left;
-            formationEndY = event.clientY - rect.top;
+            formationEndX = currentX;
+            formationEndY = currentY;
             // Update temporary indicator for drawing
              moveIndicator = {
                 startX: formationStartX, startY: formationStartY,
@@ -199,43 +89,38 @@ export function setupInputListeners(canvas, getUnits, getSelectedUnits, setSelec
         }
     });
 
+    // --- Combined Mouse Up Listener ---
      canvas.addEventListener('mouseup', (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const clickX = event.clientX - rect.left; // Use final mouse up position
+        const clickY = event.clientY - rect.top;
+
         // Handle Left Mouse Up (Selection)
         if (event.button === 0 && isDraggingSelection) {
-            // ... (existing selection logic remains here) ...
-            // Reset drag state immediately
-            const wasDragging = isDraggingSelection;
-            isDraggingSelection = false;
+            const wasDragging = isDraggingSelection; // Store state before resetting
+            isDraggingSelection = false; // Reset drag state immediately
 
-            const rect = canvas.getBoundingClientRect();
-            const clickX = event.clientX - rect.left; // Use final mouse up position
-            const clickY = event.clientY - rect.top;
             const shiftPressed = event.shiftKey; // Check shift state on mouse up
-
-            const dragThreshold = 5; // Minimum pixels moved to count as a drag
+            const dragThreshold = 5;
             const dragDistance = Math.sqrt(
                 Math.pow(clickX - selectionBoxStartX, 2) +
                 Math.pow(clickY - selectionBoxStartY, 2)
             );
 
-            const currentUnits = getUnits(); // Use getter
-            let currentSelection = [...getSelectedUnits()]; // Get a mutable copy
+            const currentUnits = getUnits();
+            let currentSelection = [...getSelectedUnits()];
 
             if (wasDragging && dragDistance > dragThreshold) {
-                // --- Drag Selection Logic ---
+                // Drag Selection Logic
                 const selectionBox = {
                     x: Math.min(selectionBoxStartX, clickX),
                     y: Math.min(selectionBoxStartY, clickY),
                     width: Math.abs(clickX - selectionBoxStartX),
                     height: Math.abs(clickY - selectionBoxStartY),
                 };
-
-                const unitsInBox = [];
-                currentUnits.forEach(unit => {
-                    if (!unit.isDead && isUnitInSelectionBox(unit, selectionBox)) {
-                        unitsInBox.push(unit);
-                    }
-                });
+                const unitsInBox = currentUnits.filter(unit =>
+                    !unit.isDead && isUnitInSelectionBox(unit, selectionBox)
+                );
 
                 if (shiftPressed) {
                     unitsInBox.forEach(unit => {
@@ -250,7 +135,7 @@ export function setupInputListeners(canvas, getUnits, getSelectedUnits, setSelec
                     setSelectedUnits(unitsInBox);
                 }
             } else {
-                // --- Click Selection Logic ---
+                // Click Selection Logic
                 if (Date.now() - lastDoubleClickTime < DOUBLE_CLICK_COOLDOWN) {
                     console.log("Ignoring single click shortly after double-click.");
                     return;
@@ -293,82 +178,92 @@ export function setupInputListeners(canvas, getUnits, getSelectedUnits, setSelec
         // Handle Right Mouse Up (Formation Move Command)
         if (event.button === 2 && isDraggingFormation) {
             isDraggingFormation = false;
-            const dragThreshold = 10; // Min drag distance for line formation
+            const dragThreshold = 10;
             const dx = formationEndX - formationStartX;
             const dy = formationEndY - formationStartY;
             const dragDist = Math.sqrt(dx * dx + dy * dy);
 
-            const targetX = (formationStartX + formationEndX) / 2; // Midpoint of drag
-            const targetY = (formationStartY + formationEndY) / 2;
+            const formationCenterX = (formationStartX + formationEndX) / 2;
+            const formationCenterY = (formationStartY + formationEndY) / 2;
 
-            if (unitsBeingMoved.length === 0) return; // No units were selected when drag started
+            if (unitsBeingMoved.length === 0) return;
 
             if (unitsBeingMoved.length === 1 || dragDist < dragThreshold) {
-                 // Single unit or simple click: Move to end point (or midpoint)
-                 const finalTargetX = dragDist < dragThreshold ? formationStartX : formationEndX;
-                 const finalTargetY = dragDist < dragThreshold ? formationStartY : formationEndY;
+                 // Single unit or simple click: Move to end point
+                 const finalTargetX = formationEndX;
+                 const finalTargetY = formationEndY;
                  console.log(`Moving ${unitsBeingMoved.length} unit(s) to:`, finalTargetX, finalTargetY);
                  unitsBeingMoved[0].moveTo(finalTargetX, finalTargetY);
-                 // Set indicator for single point
                  moveIndicator = {
                      startX: finalTargetX - 5, startY: finalTargetY,
                      endX: finalTargetX + 5, endY: finalTargetY,
                      timestamp: Date.now()
                  };
-
             } else {
-                // Multi-unit drag: Line formation based on drag vector
-                console.log(`Moving ${unitsBeingMoved.length} units to formation line.`);
+                // Multi-unit drag: Multi-Row Line formation based on drag vector
+                console.log(`Moving ${unitsBeingMoved.length} units to multi-row formation.`);
 
-                const spacing = 1.5; // Spacing between units
-                const largeRadius = 10; // Tank radius threshold
-                const rowSpacing = largeRadius * 2 + spacing * 2; // Distance between rows
+                const spacing = 3.0; // Spacing between units
+                const rowSpacing = 15; // Distance between front (DPS) and back (Tank) rows
 
-                // Separate tanks and dps
-                const tanks = unitsBeingMoved.filter(u => u.radius >= largeRadius);
-                const dps = unitsBeingMoved.filter(u => u.radius < largeRadius);
+                // Separate tanks and dps based on role
+                const tanks = unitsBeingMoved.filter(u => u.role === 'tank');
+                const dps = unitsBeingMoved.filter(u => u.role === 'dps');
 
-                // Calculate formation angle based on drag direction
+                // Calculate formation angle based on drag direction (start to end)
                 const formationAngleRad = Math.atan2(dy, dx);
                 const cosAngle = Math.cos(formationAngleRad);
                 const sinAngle = Math.sin(formationAngleRad);
 
-                // Calculate perpendicular vector for row offset
-                const perpX = -sinAngle;
-                const perpY = cosAngle;
+                // Calculate perpendicular vector for row offset ("forward" is drag direction)
+                const forwardX = cosAngle;
+                const forwardY = sinAngle;
+                const perpX = -forwardY; // Perpendicular points "left" relative to forward
+                const perpY = forwardX;
 
-                // --- Assign DPS to front row(s) ---
-                let dpsWidth = 0;
-                dps.forEach(unit => { dpsWidth += (unit.radius * 2) + spacing; });
-                dpsWidth = Math.max(0, dpsWidth - spacing); // Total width of DPS line
+                // --- Assign DPS to Front Row(s) ---
+                if (dps.length > 0) {
+                    let dpsWidth = 0;
+                    dps.forEach(unit => { dpsWidth += (unit.radius * 2) + spacing; });
+                    dpsWidth = Math.max(0, dpsWidth - spacing);
 
-                let currentOffset = -dpsWidth / 2;
-                dps.sort((a, b) => a.x - b.x).forEach(unit => { // Sort by X for consistency
-                    const unitOffset = currentOffset + unit.radius;
-                    const unitTargetX = targetX + cosAngle * unitOffset;
-                    const unitTargetY = targetY + sinAngle * unitOffset;
-                    unit.moveTo(unitTargetX, unitTargetY);
-                    currentOffset += (unit.radius * 2) + spacing;
-                });
+                    let currentOffset = -dpsWidth / 2;
+                    // Sort DPS units based on their projection onto the perpendicular axis
+                    dps.sort((a, b) => (a.x * perpX + a.y * perpY) - (b.x * perpX + b.y * perpY));
 
-                 // --- Assign Tanks to back row(s) ---
-                 let tankWidth = 0;
-                 tanks.forEach(unit => { tankWidth += (unit.radius * 2) + spacing; });
-                 tankWidth = Math.max(0, tankWidth - spacing); // Total width of Tank line
+                    dps.forEach(unit => {
+                        const unitOffset = currentOffset + unit.radius;
+                        // Calculate position along the formation line (centered at formationCenterX/Y)
+                        const unitTargetX = formationCenterX + perpX * unitOffset;
+                        const unitTargetY = formationCenterY + perpY * unitOffset;
+                        unit.moveTo(unitTargetX, unitTargetY);
+                        currentOffset += (unit.radius * 2) + spacing;
+                    });
+                }
 
-                 currentOffset = -tankWidth / 2;
-                 // Calculate back row center point (offset behind targetY along perpendicular)
-                 const backRowCenterX = targetX - perpX * rowSpacing;
-                 const backRowCenterY = targetY - perpY * rowSpacing;
+                 // --- Assign Tanks to Back Row(s) ---
+                 if (tanks.length > 0) {
+                    let tankWidth = 0;
+                    tanks.forEach(unit => { tankWidth += (unit.radius * 2) + spacing; });
+                    tankWidth = Math.max(0, tankWidth - spacing);
 
-                 tanks.sort((a, b) => a.x - b.x).forEach(unit => { // Sort by X
-                    const unitOffset = currentOffset + unit.radius;
-                    // Calculate position relative to back row center point
-                    const unitTargetX = backRowCenterX + cosAngle * unitOffset;
-                    const unitTargetY = backRowCenterY + sinAngle * unitOffset;
-                    unit.moveTo(unitTargetX, unitTargetY);
-                    currentOffset += (unit.radius * 2) + spacing;
-                 });
+                    let currentOffset = -tankWidth / 2;
+                    // Calculate back row center point (offset behind front line center)
+                    const backRowCenterX = formationCenterX - forwardX * rowSpacing;
+                    const backRowCenterY = formationCenterY - forwardY * rowSpacing;
+
+                    // Sort Tanks based on their projection onto the perpendicular axis
+                    tanks.sort((a, b) => (a.x * perpX + a.y * perpY) - (b.x * perpX + b.y * perpY));
+
+                    tanks.forEach(unit => {
+                        const unitOffset = currentOffset + unit.radius;
+                        // Calculate position relative to back row center point along the perpendicular
+                        const unitTargetX = backRowCenterX + perpX * unitOffset;
+                        const unitTargetY = backRowCenterY + perpY * unitOffset;
+                        unit.moveTo(unitTargetX, unitTargetY);
+                        currentOffset += (unit.radius * 2) + spacing;
+                    });
+                 }
 
                  // Store indicator based on drag start/end for visualization
                  moveIndicator = {
@@ -380,7 +275,6 @@ export function setupInputListeners(canvas, getUnits, getSelectedUnits, setSelec
              unitsBeingMoved = []; // Clear the temporary list
         }
     });
-
 
     // Prevent default context menu globally (keep this)
     window.addEventListener('contextmenu', (event) => {
@@ -411,20 +305,20 @@ export function setupInputListeners(canvas, getUnits, getSelectedUnits, setSelec
         }
 
         if (unitDoubleClicked) {
-            const typeRadius = unitDoubleClicked.radius;
+            // Use ROLE for type matching now
+            const typeRole = unitDoubleClicked.role;
             const typeTeam = unitDoubleClicked.team;
             const unitsToSelect = currentUnits.filter(unit =>
-                !unit.isDead && unit.radius === typeRadius && unit.team === typeTeam
+                !unit.isDead && unit.role === typeRole && unit.team === typeTeam
             );
 
             if (unitsToSelect.length > 0) {
-                console.log(`Selected ${unitsToSelect.length} units of type (radius ${typeRadius}, team ${typeTeam})`);
+                console.log(`Selected ${unitsToSelect.length} units of type (${typeRole}, team ${typeTeam})`);
                 setSelectedUnits(unitsToSelect);
                 lastDoubleClickTime = Date.now(); // Record time of successful double-click selection
             }
         } else {
-            // Optional: Double-clicking empty space could have different behavior,
-            // but for now it does nothing different than single click (clears selection via mousedown).
+            // Optional: Double-clicking empty space could have different behavior
         }
     });
     // --- End Double Click Listener ---

@@ -4,7 +4,7 @@
 // This is a common pattern during refactoring.
 
 export class Unit {
-    constructor(x, y, radius, color, hp, morale, speed, attackDamage, mass, isTrained = false) { // Added isTrained parameter
+    constructor(x, y, radius, color, hp, morale, speed, attackDamage, mass, role = 'dps') { // Added role parameter, default 'dps'
         this.x = x;
         this.y = y;
         this.radius = radius;
@@ -39,7 +39,7 @@ export class Unit {
         this.isRouting = false; // Is the unit currently fleeing?
         this.fleeDirectionX = 0; // Store flee vector
         this.fleeDirectionY = 0;
-        this.isTrained = isTrained; // Store training status
+        this.role = role; // Store role ('tank', 'dps', etc.)
     }
 
     // Keeping draw, update, moveTo, takeDamage, attack as methods for now
