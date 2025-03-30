@@ -2,7 +2,7 @@
 
 // Note: This function now takes the 'units' array as an argument.
 
-const COLLISION_BUFFER = 1.0; // Increased buffer space
+const COLLISION_BUFFER = 1.5; // Further increased buffer space
 
 export function handleCollisions(units) { // Pass units array
     for (let i = 0; i < units.length; i++) {
