@@ -1,0 +1,64 @@
+Project Requirements Document: Capturing Satisfying Unit Synergy
+1. Project Goal
+
+To develop a real-time tactical game prototype (on a smaller scale) that successfully replicates the satisfying feeling of unit synergy found in games like Total War: Warhammer. The core objective is to make the strategic combination of different unit types feel impactful, rewarding, and central to the combat experience, moving beyond simple stat checks or pure attrition.
+
+2. Core Inspiration Analysis: Total War: Warhammer (TWW)
+
+Based on analysis of TWW  and expert player feedback, the key elements contributing to its successful synergy model are:   
+
+2.1. Foundational Mechanics & Unit Diversity
+
+Detailed Stats: Combat relies on interplay between core stats (e.g., Melee Attack/Defense, Weapon Strength, Armor/AP, HP, Speed, Mass). These stats provide the basic levers for unit differentiation.   
+Significant Unit Variety: TWW features a wide array of units with distinct statistical profiles, strengths, weaknesses, and battlefield roles. This inherent asymmetry encourages experimentation with combinations.   
+Tabletop Influence: TWW leverages established unit roles and characteristics from the Warhammer Fantasy tabletop game, contributing to strong faction identity and inherent (if not always perfectly balanced) asymmetry. This pre-existing differentiation aids synergistic design.   
+2.2. Tactical Depth & Player Agency
+
+Real-Time Control: Direct command over unit positioning, facing, formations, and target priority in real-time battles is crucial.   
+Meaningful Formations: Unit formation (width, depth) and spacing significantly impact combat effectiveness (e.g., charge resistance, maximizing frontage, mitigating AOE).   
+Mixed Unit Tactics: The ability to physically integrate different unit types (e.g., durable monsters within infantry blocks) provides tangible tactical advantages like screening, anchoring lines, and protecting vulnerable units. Flanking maneuvers are highly impactful.   
+2.3. Defining Feature: Morale & Routing System
+
+Uniqueness in RTS: Expert player feedback and external analysis confirm that TWW's implementation of morale and routing is a key differentiator from many other mainstream RTS games. It's not just a stat debuff; it's a core battle resolution mechanic.
+"Alternative Health Bar": Units possess Leadership (morale), which degrades due to factors like casualties, flanking, fear effects, and nearby routing allies.   
+Physical Routing: When morale breaks, units physically rout, attempting to flee the battlefield. They may rally if conditions improve or become "shattered" and permanently broken after repeated routs.   
+Tactical Impact: This system allows players to win engagements and battles by breaking the enemy's will, not just by inflicting HP damage. It makes morale-influencing effects (Fear/Terror abilities, leadership buffs/debuffs, strategic flanking) highly valuable.   
+2.4. Synergistic Unit Abilities
+
+Complementary Roles: Units possess specific active or passive abilities that allow them to work together effectively. Examples from TWW include:
+Troll Regeneration (Durability) + Troll Vomit (AP Damage) + Goblin/Orc Numbers (Screening/Tarpit).   
+Units Causing Fear/Terror (Morale Damage) + Damage Dealers (HP Damage).   
+Units with Poison Attacks (Debuff) + High Damage Units.   
+Army/Local Buffs (e.g., Waaagh!, Leadership Auras) enhancing multiple units.   
+  
+Beyond Counters: Synergy goes beyond simple rock-paper-scissors; it involves combining abilities to overcome challenges or create advantages that individual units lack.   
+2.5. Sensory Feedback
+
+Visual Clarity: Detailed unit models and animations clearly communicate actions, impacts, and unit types. Visual effects for abilities (e.g., poison clouds, regeneration glows) reinforce their function.   
+Audio Immersion: Impactful sound design (weapon clashes, roars, ability sounds, unit cries) enhances the feeling of power and confirms actions, contributing significantly to player satisfaction.   
+2.6. AI Interaction (Secondary Consideration for Prototype)
+
+Reactive AI: In TWW, the AI attempts to recognize and counter player tactics, such as targeting high-value units or flanking synergistic formations. This makes successfully executing synergistic strategies feel more rewarding.   
+3. Key Requirements for New Game Prototype
+
+To capture the essence of TWW's synergy on a smaller scale, the prototype must prioritize:
+
+3.1. Core Combat: Implement a system with distinct unit stats and clear roles. Ensure fundamental interactions (melee engagement, flanking bonuses, damage types like AP vs. non-AP) are present. Provide direct player control over unit movement and targeting.
+3.2. Central Morale/Routing System:
+Implement a morale value for units influenced by combat events (damage taken/dealt, flanks, casualties nearby, specific abilities).
+Units whose morale breaks must physically attempt to flee the engagement/battlefield.
+Include mechanics for potential rallying or permanent breaking (shattering).
+Ensure this system is a primary path to defeating enemy units/armies, not just a secondary debuff.
+3.3. Unit Design for Synergy:
+Design a small set of units with clearly defined roles (e.g., Tank, DPS, Support, Morale-focused).
+Give units specific, impactful abilities (active or passive) designed to complement abilities of other unit types. Focus on quality over quantity initially.
+3.4. Tactical Positioning: Implement systems where unit formation, facing, and relative positioning (e.g., screening, flanking) have clear, demonstrable effects on combat outcomes.
+3.5. Clear Feedback: Invest in distinct and satisfying visual and audio cues for:
+Basic attacks and damage.
+Ability activations and effects.
+Morale states (e.g., wavering, routing visuals/audio).
+Unit death/destruction.
+4. Scope Considerations
+
+Achieving the full depth of TWW is unrealistic for a smaller-scale project. Focus should be on proving the core loop: using tactical control and synergistic unit combinations (leveraging complementary stats, abilities, and positioning) to win engagements primarily through a combination of HP damage and the distinct morale/routing mechanic, all reinforced by clear sensory feedback. Features like deep faction asymmetry, extensive unit rosters, campaign layers, and highly complex AI can be considered for later expansion.
+

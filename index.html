@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini TWW Prototype</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #222; /* Darker background */
+            display: flex;
+            flex-direction: column; /* Stack canvas and feeds vertically */
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: sans-serif;
+            color: #eee;
+        }
+        canvas {
+            display: block;
+            border: 3px solid white;
+            background-color: #666;
+            margin-bottom: 10px; /* Space between canvas and feeds */
+        }
+        .feed-container {
+            display: flex;
+            justify-content: space-around; /* Space out the feeds */
+            width: 800px; /* Match canvas width */
+        }
+        .feed {
+            border: 1px solid #888;
+            height: 100px; /* Fixed height */
+            width: 48%; /* Slightly less than half */
+            overflow-y: scroll; /* Enable scrolling */
+            background-color: #333;
+            padding: 5px;
+            font-size: 0.8em;
+            box-sizing: border-box;
+        }
+        .feed h4 {
+            margin: 0 0 5px 0;
+            padding-bottom: 3px;
+            border-bottom: 1px solid #555;
+            color: #ccc;
+        }
+        .feed p {
+            margin: 0 0 3px 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div class="feed-container">
+        <div id="damageFeed" class="feed"><h4>Damage Log</h4></div>
+        <div id="killFeed" class="feed"><h4>Kill Log</h4></div>
+    </div>
+    <script type="module" src="js/game.js"></script> <!-- Load as module -->
+</body>
+</html>
