@@ -156,12 +156,38 @@ export function setupInputListeners(canvas, getUnits, getSelectedUnits, setSelec
         if (currentSelection.length > 0) {
             const rect = canvas.getBoundingClientRect();
             const targetX = event.clientX - rect.left;
-            const targetY = event.clientY - rect.top;
+            const targetY = event.clientY - rect.top; // Center of the formation
 
-            console.log(`Moving ${currentSelection.length} units to:`, targetX, targetY);
-            currentSelection.forEach(unit => {
-                unit.moveTo(targetX, targetY); // Assumes unit object has moveTo method
-            });
+            if (currentSelection.length === 1) {
+                // Single unit selection - move directly to target
+                console.log(`Moving 1 unit to:`, targetX, targetY);
+                currentSelection[0].moveTo(targetX, targetY);
+            } else {
+                // Multiple units - calculate line formation points
+                console.log(`Moving ${currentSelection.length} units to formation at:`, targetX, targetY);
+
+                // --- Simple Horizontal Line Formation ---
+                // 1. Calculate total width needed
+                let totalWidth = 0;
+                const spacing = 1.0; // Use the collision buffer for spacing between units in formation
+                currentSelection.forEach(unit => {
+                    totalWidth += (unit.radius * 2) + spacing;
+                });
+                totalWidth -= spacing; // Remove last spacing
+
+                // 2. Calculate starting X position
+                let currentX = targetX - (totalWidth / 2);
+
+                // 3. Assign individual targets (sort by current X for some consistency)
+                const sortedSelection = [...currentSelection].sort((a, b) => a.x - b.x);
+
+                sortedSelection.forEach(unit => {
+                    const unitTargetX = currentX + unit.radius; // Place center of unit
+                    unit.moveTo(unitTargetX, targetY);
+                    currentX += (unit.radius * 2) + spacing; // Move to position for next unit
+                });
+                // --- End Formation Logic ---
+            }
         }
     });
 
