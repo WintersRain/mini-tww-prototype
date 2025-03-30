@@ -65,7 +65,8 @@ export function handleCollisions(units) { // Pass units array
                             // Trained Deflect: Apply perpendicular push, don't stop mover
                             const perpX = -ny; // Perpendicular vector
                             const perpY = nx;
-                            const pushStrength = overlap / 2; // Adjust as needed
+                            // Use pushMagnitude (calculated earlier) for the deflection strength
+                            const pushStrength = pushMagnitude; // Use the calculated push needed
 
                             // Apply deflection push mainly to the mover
                             if (mover === unitA) {
