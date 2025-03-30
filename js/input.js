@@ -6,6 +6,8 @@ let selectionBoxStartX = 0;
 let selectionBoxStartY = 0;
 let selectionBoxCurrentX = 0;
 let selectionBoxCurrentY = 0;
+let lastDoubleClickTime = 0; // Timestamp of the last successful double-click selection
+const DOUBLE_CLICK_COOLDOWN = 300; // Milliseconds to ignore single clicks after double-click
 
 // --- Helper ---
 function isUnitInSelectionBox(unit, box) {
@@ -100,6 +102,13 @@ export function setupInputListeners(canvas, getUnits, getSelectedUnits, setSelec
             }
         } else {
             // --- Click Selection Logic (drag distance was small) ---
+
+            // Ignore single click if it happens right after a double-click
+            if (Date.now() - lastDoubleClickTime < DOUBLE_CLICK_COOLDOWN) {
+                console.log("Ignoring single click shortly after double-click.");
+                return;
+            }
+
             let unitClicked = null;
             // Find the top-most unit clicked
             for (let i = currentUnits.length - 1; i >= 0; i--) {
@@ -160,6 +169,49 @@ export function setupInputListeners(canvas, getUnits, getSelectedUnits, setSelec
     window.addEventListener('contextmenu', (event) => {
         event.preventDefault();
     });
+
+    // --- Double Click Listener ---
+    canvas.addEventListener('dblclick', (event) => {
+        if (event.button !== 0) return; // Only react to left mouse button
+
+        const rect = canvas.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const clickY = event.clientY - rect.top;
+
+        const currentUnits = getUnits();
+        let unitDoubleClicked = null;
+
+        // Find the top-most unit double-clicked
+        for (let i = currentUnits.length - 1; i >= 0; i--) {
+            const unit = currentUnits[i];
+            if (unit.isDead) continue; // Don't select dead units
+            const dx = clickX - unit.x;
+            const dy = clickY - unit.y;
+            if (dx * dx + dy * dy < unit.radius * unit.radius) {
+                unitDoubleClicked = unit;
+                break;
+            }
+        }
+
+        if (unitDoubleClicked) {
+            const typeRadius = unitDoubleClicked.radius;
+            const typeTeam = unitDoubleClicked.team;
+            const unitsToSelect = currentUnits.filter(unit =>
+                !unit.isDead && unit.radius === typeRadius && unit.team === typeTeam
+            );
+
+            if (unitsToSelect.length > 0) {
+                console.log(`Selected ${unitsToSelect.length} units of type (radius ${typeRadius}, team ${typeTeam})`);
+                setSelectedUnits(unitsToSelect);
+                lastDoubleClickTime = Date.now(); // Record time of successful double-click selection
+            }
+        } else {
+            // Optional: Double-clicking empty space could have different behavior,
+            // but for now it does nothing different than single click (clears selection via mousedown).
+        }
+    });
+    // --- End Double Click Listener ---
+
 }
 
 // Export necessary state/functions for drawing the selection box

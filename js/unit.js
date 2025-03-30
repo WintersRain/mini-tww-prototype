@@ -4,7 +4,7 @@
 // This is a common pattern during refactoring.
 
 export class Unit {
-    constructor(x, y, radius, color, hp, morale, speed, attackDamage, mass) {
+    constructor(x, y, radius, color, hp, morale, speed, attackDamage, mass, isTrained = false) { // Added isTrained parameter
         this.x = x;
         this.y = y;
         this.radius = radius;
@@ -37,6 +37,7 @@ export class Unit {
         this.isRouting = false; // Is the unit currently fleeing?
         this.fleeDirectionX = 0; // Store flee vector
         this.fleeDirectionY = 0;
+        this.isTrained = isTrained; // Store training status
     }
 
     // Keeping draw, update, moveTo, takeDamage, attack as methods for now
@@ -132,10 +133,80 @@ export class Unit {
         }
 
 
-        // Basic Morale check
-        if (this.currentMorale <= 0 && !this.isBroken) {
+        // --- Broken State Logic (Routing, Recovery, Threat Check) ---
+        if (this.isBroken && !this.isDead) {
+            const THREAT_RADIUS = 60;
+            let closestThreat = null;
+            let minThreatDistSq = THREAT_RADIUS * THREAT_RADIUS;
+
+            // 1. Check for nearby threats
+            for (const otherUnit of units) {
+                if (otherUnit.team === this.team || otherUnit.isDead || otherUnit.isBroken) continue; // Skip friendlies, dead, broken
+
+                const dx = otherUnit.x - this.x;
+                const dy = otherUnit.y - this.y;
+                const distSq = dx * dx + dy * dy;
+
+                if (distSq < minThreatDistSq) {
+                    minThreatDistSq = distSq;
+                    closestThreat = otherUnit;
+                }
+            }
+
+            // 2. React to Threat (Start/Continue Fleeing)
+            if (closestThreat) {
+                this.lastAttacker = closestThreat; // Set threat as the reason for fleeing
+                console.log(`${this.color} broken unit detected threat (${closestThreat.color}), routing/re-routing!`);
+                const fleeDX = this.x - this.lastAttacker.x;
+                const fleeDY = this.y - this.lastAttacker.y;
+                const fleeDist = Math.sqrt(fleeDX * fleeDX + fleeDY * fleeDY);
+
+                if (fleeDist > 0) {
+                    this.fleeDirectionX = fleeDX / fleeDist;
+                    this.fleeDirectionY = fleeDY / fleeDist;
+                } else {
+                    const randomAngle = Math.random() * Math.PI * 2;
+                    this.fleeDirectionX = Math.cos(randomAngle);
+                    this.fleeDirectionY = Math.sin(randomAngle);
+                }
+
+                const fleeDistance = this.isRouting ? 50 : 100; // Flee further if already routing
+                let fleeTargetX = this.x + this.fleeDirectionX * fleeDistance;
+                let fleeTargetY = this.y + this.fleeDirectionY * fleeDistance;
+
+                fleeTargetX = Math.max(this.radius, Math.min(canvas.width - this.radius, fleeTargetX));
+                fleeTargetY = Math.max(this.radius, Math.min(canvas.height - this.radius, fleeTargetY));
+
+                this.targetX = fleeTargetX;
+                this.targetY = fleeTargetY;
+                this.isMoving = true;
+                this.isRouting = true; // Ensure routing flag is set
+                this.lastAttacker = null; // Clear after calculating direction
+
+            } else {
+                // 3. No Threat Found: Check if currently routing and reached destination
+                if (this.isRouting && !this.isMoving) {
+                    this.checkAndStopRouting(canvas, units); // Check for clear space
+                }
+                // 4. No Threat Found & Not Routing (or just stopped): Regenerate Morale
+                else if (!this.isRouting) {
+                    const MORALE_REGEN_RATE = 5; // Units per second
+                    this.currentMorale += MORALE_REGEN_RATE * deltaTime;
+                    if (this.currentMorale >= this.maxMorale) {
+                        this.currentMorale = this.maxMorale;
+                        this.isBroken = false; // Rally!
+                        console.log(`${this.color} unit rallied!`);
+                    }
+                }
+            }
+        }
+        // --- End Broken State Logic ---
+
+
+        // Initial Morale Break Check (only sets flags, detailed logic moved above)
+        if (this.currentMorale <= 0 && !this.isBroken && !this.isDead) { // Added !isDead check
             this.isBroken = true;
-            this.attackTarget = null; // Stop fighting
+            this.attackTarget = null;
             this.isMoving = false; // Stop current movement initially
             console.log(`${this.color} unit broken!`);
 
