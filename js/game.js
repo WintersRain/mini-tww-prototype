@@ -105,6 +105,18 @@ function drawGame() {
         ctx.fillRect(selectionBoxState.startX, selectionBoxState.startY, boxWidth, boxHeight);
         ctx.strokeRect(selectionBoxState.startX, selectionBoxState.startY, boxWidth, boxHeight);
     }
+
+    // Draw move command indicator
+    const indicator = getMoveIndicator(); // Get indicator state from input module
+    if (indicator) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)'; // White, semi-transparent
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(indicator.startX, indicator.startY);
+        ctx.lineTo(indicator.endX, indicator.endY);
+        ctx.stroke();
+        // Optional: Draw arrow head? More complex.
+    }
 }
 
 // --- Game Loop ---
