@@ -163,28 +163,59 @@ export function setupInputListeners(canvas, getUnits, getSelectedUnits, setSelec
                 console.log(`Moving 1 unit to:`, targetX, targetY);
                 currentSelection[0].moveTo(targetX, targetY);
             } else {
-                // Multiple units - calculate line formation points
+                // Multiple units - calculate directional line formation points
                 console.log(`Moving ${currentSelection.length} units to formation at:`, targetX, targetY);
 
-                // --- Simple Horizontal Line Formation ---
-                // 1. Calculate total width needed
+                // --- Directional Line Formation ---
+                const spacing = 1.5; // Use collision buffer + a little extra
+                const largeRadius = 10; // Need radius info here, maybe pass from game.js? Hardcoding for now.
+
+                // 1. Sort units: DPS first, then Tanks
+                const sortedSelection = [...currentSelection].sort((a, b) => {
+                    const aIsTank = a.radius >= largeRadius;
+                    const bIsTank = b.radius >= largeRadius;
+                    if (aIsTank === bIsTank) return a.x - b.x; // Sort by X within type
+                    return aIsTank ? 1 : -1; // Tanks go to the end
+                });
+                const numUnits = sortedSelection.length;
+
+                // 2. Calculate total width needed based on sorted units
                 let totalWidth = 0;
-                const spacing = 1.0; // Use the collision buffer for spacing between units in formation
-                currentSelection.forEach(unit => {
+                sortedSelection.forEach(unit => {
                     totalWidth += (unit.radius * 2) + spacing;
                 });
                 totalWidth -= spacing; // Remove last spacing
 
-                // 2. Calculate starting X position
-                let currentX = targetX - (totalWidth / 2);
+                // 3. Determine Formation Angle
+                // Calculate average current position of selected units
+                let avgX = 0;
+                let avgY = 0;
+                sortedSelection.forEach(unit => { avgX += unit.x; avgY += unit.y; });
+                avgX /= numUnits;
+                avgY /= numUnits;
 
-                // 3. Assign individual targets (sort by current X for some consistency)
-                const sortedSelection = [...currentSelection].sort((a, b) => a.x - b.x);
+                // Angle from average position to target click
+                const angleRad = Math.atan2(targetY - avgY, targetX - avgX);
+                // Make formation line perpendicular to movement direction
+                const formationAngleRad = angleRad + Math.PI / 2;
+                const cosAngle = Math.cos(formationAngleRad);
+                const sinAngle = Math.sin(formationAngleRad);
 
+                // 4. Calculate starting point for the line
+                let currentOffset = -totalWidth / 2; // Start from the left end of the line width
+
+                // 5. Assign individual targets along the rotated line
                 sortedSelection.forEach(unit => {
-                    const unitTargetX = currentX + unit.radius; // Place center of unit
-                    unit.moveTo(unitTargetX, targetY);
-                    currentX += (unit.radius * 2) + spacing; // Move to position for next unit
+                    const unitOffset = currentOffset + unit.radius; // Position center of unit along the line
+
+                    // Calculate position relative to target point based on angle and offset
+                    const unitTargetX = targetX + cosAngle * unitOffset;
+                    const unitTargetY = targetY + sinAngle * unitOffset;
+
+                    unit.moveTo(unitTargetX, unitTargetY);
+
+                    // Move to the start position for the next unit
+                    currentOffset += (unit.radius * 2) + spacing;
                 });
                 // --- End Formation Logic ---
             }

@@ -23,7 +23,9 @@ export class Unit {
         this.isBroken = false; // Morale state
         this.attackTarget = null; // Track who the unit is fighting
         this.attackCooldown = 0; // Time until next attack
-        this.attackRange = this.radius + 15; // Increased engagement range
+        // Conditional attack range based on radius (Tank vs DPS)
+        const isTank = radius >= 10; // Assuming radius 10 is tank threshold now
+        this.attackRange = this.radius + (isTank ? 25 : 15); // Tanks get +25, others +15
         this.attackSpeed = 1.0; // Attacks per second (lower is faster)
         // Assign team based on color
         if (color === 'blue') {
