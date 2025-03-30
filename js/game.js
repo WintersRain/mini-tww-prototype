@@ -123,8 +123,10 @@ function gameLoop(timestamp) {
     // Pass units array needed for checkAndStopRouting
     units.forEach(unit => unit.update(deltaTime, canvas, units));
 
-    // 2. Handle Collisions
+    // 2. Handle Collisions (Run twice to help units settle)
+    // TODO: Performance - If slowdown occurs with many units, consider reverting to single call.
     handleCollisions(units); // Pass dependencies
+    handleCollisions(units); // Second pass
 
     // 3. Handle Combat
     handleCombat(units, logToFeed, damageFeedEl); // Pass dependencies
